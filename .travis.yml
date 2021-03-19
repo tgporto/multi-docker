@@ -1,0 +1,25 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build -t tgporto/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true tgporto/react-test npm test 
+
+after_success:
+  - docker build -t tgporto/multi-client ./client 
+  - docker build -t tgporto/multi-nginx ./nginx
+  - docker build -t tgporto/multi-server ./server 
+  - docker build -t tgporto/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push tgporto/multi-client
+  - docker push tgporto/multi-nginx
+  - docker push tgporto/multi-server
+  - docker push tgporto/multi-worker
+
+
+
